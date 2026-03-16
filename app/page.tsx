@@ -196,13 +196,13 @@ export default function OverviewPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
 
         {/* Page header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Mystiv Client Stream Dashboard
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+              Mystiv Client Stream
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Real-time view of website bookings and walk-in job cards.
@@ -213,16 +213,16 @@ export default function OverviewPage() {
             size="sm"
             onClick={() => fetchData(true)}
             disabled={refreshing || loading}
-            className="gap-1.5"
+            className="shrink-0 gap-1.5"
           >
             <RefreshCw className={`size-3.5 ${refreshing ? "animate-spin" : ""}`} />
-            {refreshing ? "Refreshing…" : "Refresh"}
+            <span className="hidden sm:inline">{refreshing ? "Refreshing…" : "Refresh"}</span>
           </Button>
         </div>
 
         {/* Loading skeleton */}
         {loading ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {Array.from({ length: 5 }).map((_, i) => (
               <Card key={i}>
                 <CardContent className="h-24 animate-pulse rounded-xl bg-muted/50" />
@@ -232,7 +232,7 @@ export default function OverviewPage() {
         ) : data ? (
           <div className="space-y-6">
             {/* KPI row */}
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <KPICard
                 label="Total Clients"
                 value={data.sourceSummary.totalCount}

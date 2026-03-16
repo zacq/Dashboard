@@ -19,17 +19,17 @@ export function KPICard({ label, value, icon: Icon, change }: Props) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-xs font-medium text-muted-foreground leading-snug whitespace-normal">
           {label}
         </CardTitle>
         {Icon && (
           <CardAction>
-            <Icon size={20} style={{ color: "#E8380D" }} />
+            <Icon size={18} style={{ color: "#E8380D" }} />
           </CardAction>
         )}
       </CardHeader>
       <CardContent>
-        <p className="text-3xl font-bold tracking-tight">{value}</p>
+        <p className="text-2xl font-bold tracking-tight sm:text-3xl">{value}</p>
       </CardContent>
       {change && (
         <CardFooter>

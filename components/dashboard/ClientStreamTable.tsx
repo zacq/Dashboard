@@ -29,13 +29,12 @@ const STATUS_STYLES: Record<UnifiedClientRecord["normalizedStatus"], string> = {
   Other: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 };
 
-function formatDateTime(value: string): string {
+function formatDateShort(value: string): string {
   const date = new Date(value);
   if (isNaN(date.getTime())) return value;
   return date.toLocaleString("en-AU", {
     day: "2-digit",
     month: "short",
-    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -124,79 +123,97 @@ export function ClientStreamTable({ records, onView }: Props) {
         />
       </div>
 
-      {/* Table */}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Received</TableHead>
-            <TableHead>Client Name</TableHead>
-            <TableHead>Phone Number</TableHead>
-            <TableHead>Source</TableHead>
-            <TableHead>Vehicle</TableHead>
-            <TableHead>Service</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginated.length === 0 ? (
+      {/* Table — horizontally scrollable on mobile */}
+      <div className="overflow-x-auto rounded-lg border">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
-                No records found.
-              </TableCell>
+              <TableHead className="whitespace-nowrap">Received</TableHead>
+              <TableHead className="whitespace-nowrap">Client</TableHead>
+              {/* Phone hidden on xs, shown sm+ */}
+              <TableHead className="hidden sm:table-cell whitespace-nowrap">Phone</TableHead>
+              <TableHead className="whitespace-nowrap">Source</TableHead>
+              {/* Vehicle + Service hidden on mobile */}
+              <TableHead className="hidden md:table-cell whitespace-nowrap">Vehicle</TableHead>
+              <TableHead className="hidden md:table-cell whitespace-nowrap">Service</TableHead>
+              {/* Status hidden on mobile */}
+              <TableHead className="hidden sm:table-cell whitespace-nowrap">Status</TableHead>
+              <TableHead />
             </TableRow>
-          ) : (
-            paginated.map((record) => {
-              const missingPhone = !record.phoneNumber || record.phoneNumber.trim() === "";
-              return (
-                <TableRow key={record.id}>
-                  <TableCell className="text-muted-foreground">
-                    {formatDateTime(record.receivedAt)}
-                  </TableCell>
-                  <TableCell className="font-medium">{record.clientName || "—"}</TableCell>
-                  <TableCell>
-                    {missingPhone ? (
-                      <span className="rounded px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                        Missing
+          </TableHeader>
+          <TableBody>
+            {paginated.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                  No records found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginated.map((record) => {
+                const missingPhone = !record.phoneNumber || record.phoneNumber.trim() === "";
+                return (
+                  <TableRow key={record.id}>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {formatDateShort(record.receivedAt)}
+                    </TableCell>
+                    <TableCell className="font-medium max-w-[120px] sm:max-w-none truncate">
+                      {record.clientName || "—"}
+                      {/* Show phone inline on mobile below name */}
+                      {missingPhone ? (
+                        <span className="sm:hidden block mt-0.5 rounded px-1 py-px text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 w-fit">
+                          No phone
+                        </span>
+                      ) : (
+                        <span className="sm:hidden block mt-0.5 text-xs text-muted-foreground">
+                          {record.phoneNumber}
+                        </span>
+                      )}
+                    </TableCell>
+                    {/* Phone column — sm+ only */}
+                    <TableCell className="hidden sm:table-cell">
+                      {missingPhone ? (
+                        <span className="rounded px-1.5 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+                          Missing
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center whitespace-nowrap">
+                          {record.phoneNumber}
+                          <CopyButton text={record.phoneNumber} />
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <SourceBadge sourceSystem={record.sourceSystem} />
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell max-w-[140px] truncate text-muted-foreground">
+                      {record.vehicleSummary || "—"}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell max-w-[160px] truncate text-muted-foreground">
+                      {record.serviceSummary || "—"}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[record.normalizedStatus]}`}
+                      >
+                        {record.normalizedStatus}
                       </span>
-                    ) : (
-                      <span className="inline-flex items-center">
-                        {record.phoneNumber}
-                        <CopyButton text={record.phoneNumber} />
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <SourceBadge sourceSystem={record.sourceSystem} />
-                  </TableCell>
-                  <TableCell className="max-w-[160px] truncate text-muted-foreground">
-                    {record.vehicleSummary || "—"}
-                  </TableCell>
-                  <TableCell className="max-w-[180px] truncate text-muted-foreground">
-                    {record.serviceSummary || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[record.normalizedStatus]}`}
-                    >
-                      {record.normalizedStatus}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" onClick={() => onView(record)}>
-                      View
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" onClick={() => onView(record)}>
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
+      <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+        <span className="whitespace-nowrap">
           {filtered.length === 0
             ? "No results"
             : `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} of ${filtered.length}`}
@@ -208,7 +225,7 @@ export function ClientStreamTable({ records, onView }: Props) {
             disabled={currentPage === 1}
             onClick={() => setPage((p) => p - 1)}
           >
-            Previous
+            Prev
           </Button>
           <Button
             variant="outline"
