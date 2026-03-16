@@ -1,6 +1,12 @@
 import { FieldSet, Record } from "airtable";
 import { UnifiedClientRecord } from "@/lib/types";
 
+// The airtable package exposes createdTime at runtime but omits it from
+// its TypeScript types. This helper retrieves it safely.
+function getCreatedTime(record: Record<FieldSet>): string {
+  return (record as unknown as { createdTime: string }).createdTime ?? new Date().toISOString();
+}
+
 function normalizeStatus(raw: string | undefined): UnifiedClientRecord["normalizedStatus"] {
   switch (raw) {
     case "New":
@@ -45,7 +51,7 @@ export function normalizeWebsiteBooking(record: Record<FieldSet>): UnifiedClient
     emailAddress: str(f["Email Address"]),
     vehicleSummary: str(f["Vehicle"]),
     serviceSummary: str(f["Service Requested"]),
-    receivedAt: record.createdTime,
+    receivedAt: getCreatedTime(record),
     normalizedStatus: normalizeStatus(rawStatus),
     rawStatus,
   };
@@ -67,7 +73,7 @@ export function normalizeWalkIn(record: Record<FieldSet>): UnifiedClientRecord {
     emailAddress: str(f["Email"]),
     vehicleSummary,
     serviceSummary: str(f["Services"]),
-    receivedAt: str(f["Date Received"]) ?? record.createdTime,
+    receivedAt: str(f["Date Received"]) ?? getCreatedTime(record),
     normalizedStatus: normalizeStatus(rawStatus),
     rawStatus,
   };
